@@ -76,7 +76,25 @@ namespace Calculator
             {
                 if (digits[i] == 0)
                 {
+                    int x = digits.Count - i - 1;
+                    if (PointPosition - x > 1)
+                    {
+                        if (PointPosition != -1) PointPosition--;
+                        digits.RemoveAt(i);
+                    }
+
+                }
+                else
+                {
+                    break;
+                }
+            }
+            for (var i = 0; i < digits.Count - 1; i++)
+            {
+                if (digits[i] == 0 && PointPosition != -1 && PointPosition != digits.Count)
+                {
                     digits.RemoveAt(i);
+                    i--;
                 }
                 else
                 {
@@ -141,7 +159,7 @@ namespace Calculator
             {
                 s.Append(Convert.ToString(digits[i]));
             }
-            if (PointPosition >= 0)
+            if (PointPosition >= 0 & PointPosition != digits.Count)
                 s.Insert(PointPosition, ".");
             s.Insert(0, Sign == Sign.Minus ? "-" : "");
 
@@ -157,7 +175,7 @@ namespace Calculator
                 {
                     if (b.PointPosition == -1) b.PointPosition = b.digits.Count;
                     b.addDigit(0, 0);
-                    
+
                 }
             else
                 for (int i = 0; i < deltaAfter; i++)
@@ -328,6 +346,30 @@ namespace Calculator
             return new BigPointNumber(digits, max.Sign, tmp_PointPos);
         }
 
+        private static BigPointNumber Multiply(BigPointNumber a, BigPointNumber b)
+        {
+            var retValue = Zero;
+
+            for (var i = 0; i < a.Size; i++)
+            {
+                for (int j = 0, carry = 0; (j < b.Size) || (carry > 0); j++)
+                {
+                    var cur = retValue.GetByte(i + j) + a.GetByte(i) * b.GetByte(j) + carry;
+                    retValue.SetByte(i + j, (byte)(cur % 10));
+                    carry = cur / 10;
+                }
+            }
+
+            retValue.Sign = a.Sign == b.Sign ? Sign.Plus : Sign.Minus;
+            int delta = 0;
+            delta += a.PointPosition != -1 ? a.SizeAfterPoint : 0;
+            delta += b.PointPosition != -1 ? b.SizeAfterPoint : 0;
+            retValue.PointPosition = retValue.digits.Count - delta;
+            if (retValue.PointPosition == retValue.digits.Count) retValue.PointPosition = -1;
+            retValue.RemoveNulls();
+            return retValue;
+        }
+
         public static BigPointNumber operator -(BigPointNumber a)
         {
             a.Sign = a.Sign == Sign.Plus ? Sign.Minus : Sign.Plus;
@@ -339,6 +381,7 @@ namespace Calculator
                 : Substract(a, b);
 
         public static BigPointNumber operator -(BigPointNumber a, BigPointNumber b) => a + -b;
+        public static BigPointNumber operator *(BigPointNumber a, BigPointNumber b) => Multiply(a, b);
     }
 
 }

@@ -14,10 +14,10 @@ namespace Calculator
             //BigNumber b = new BigNumber("654321");
             //Console.WriteLine(a + b);
 
-            BigPointNumber x = new BigPointNumber("113457645684678.453457684568467854");
-            BigPointNumber y = new BigPointNumber("234.4545685678567567");
+            BigPointNumber x = new BigPointNumber("12.5");
+            BigPointNumber y = new BigPointNumber("80");
             //Console.WriteLine(x + y);
-            Console.WriteLine(x - y);
+            Console.WriteLine(x * y);
             Console.ReadKey();
         }
     }
