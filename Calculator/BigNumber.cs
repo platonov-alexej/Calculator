@@ -295,7 +295,7 @@ namespace Calculator
             return retValue;
         }
 
-        private static BigNumber Div(BigNumber a, BigNumber b)
+        public static BigNumber Div(BigNumber a, BigNumber b)
         {
             var retValue = Zero;
             var curValue = Zero;

@@ -134,6 +134,14 @@ namespace Calculator
             digits[i] = b;
         }
 
+        public static BigPointNumber Exp(byte val, int exp)
+        {
+            BigPointNumber bigInt = Zero;
+            bigInt.SetByte(exp, val);
+            bigInt.RemoveNulls();
+            return bigInt;
+        }
+
         public int SizeAfterPoint
         {
             get
@@ -196,6 +204,21 @@ namespace Calculator
                     a.PointPosition++;
                 }
         }
+
+
+        public static bool operator <(BigPointNumber a, BigPointNumber b) => Comparison(a, b) < 0;
+
+        public static bool operator >(BigPointNumber a, BigPointNumber b) => Comparison(a, b) > 0;
+
+        public static bool operator <=(BigPointNumber a, BigPointNumber b) => Comparison(a, b) <= 0;
+
+        public static bool operator >=(BigPointNumber a, BigPointNumber b) => Comparison(a, b) >= 0;
+
+        public static bool operator ==(BigPointNumber a, BigPointNumber b) => Comparison(a, b) == 0;
+
+        public static bool operator !=(BigPointNumber a, BigPointNumber b) => Comparison(a, b) != 0;
+
+        public override bool Equals(object obj) => !(obj is BigPointNumber) ? false : this == (BigPointNumber)obj;
 
 
         private static BigPointNumber Add(BigPointNumber a, BigPointNumber b)
@@ -370,10 +393,73 @@ namespace Calculator
             return retValue;
         }
 
+        private static BigPointNumber Div(BigPointNumber A, BigPointNumber B)
+        {
+            BigPointNumber a = A;
+            BigPointNumber b = B;
+
+            RemoveFractionalParts(ref a, ref b);
+
+            BigNumber a_ = new BigNumber(a.ToString());
+            BigNumber b_ = new BigNumber(b.ToString());
+
+            return new BigPointNumber (BigNumber.Div(a_, b_).ToString());
+
+        }
+
+        private static void RemoveFractionalParts(ref BigPointNumber a, ref BigPointNumber b)
+        {
+            int aSizeAfterPoint = a.SizeAfterPoint;
+            int bSizeAfterPoint = b.SizeAfterPoint;
+            int MaxSizeAfterPoints = Math.Max(aSizeAfterPoint, bSizeAfterPoint);
+            for (int i = 0; i < MaxSizeAfterPoints - aSizeAfterPoint; i++)
+                a.digits.Insert(0, 0);
+            for (int i = 0; i < MaxSizeAfterPoints - bSizeAfterPoint; i++)
+                b.digits.Insert(0, 0);
+            a.PointPosition = -1;
+            b.PointPosition = -1;
+        }
+
+        private static BigPointNumber Mod(BigPointNumber a, BigPointNumber b)
+        {
+            var retValue = Zero;
+
+            for (var i = a.Size - 1; i >= 0; i--)
+            {
+                retValue += Exp(a.GetByte(i), i);
+
+                var x = 0;
+                var l = 0;
+                var r = 10;
+
+                while (l <= r)
+                {
+                    var m = (l + r) >> 1;
+                    var cur = b * Exp((byte)m, i);
+                    if (cur <= retValue)
+                    {
+                        x = m;
+                        l = m + 1;
+                    }
+                    else
+                    {
+                        r = m - 1;
+                    }
+                }
+
+                retValue -= b * Exp((byte)x, i);
+            }
+
+            retValue.RemoveNulls();
+
+            retValue.Sign = a.Sign == b.Sign ? Sign.Plus : Sign.Minus;
+            return retValue;
+        }
         public static BigPointNumber operator -(BigPointNumber a)
         {
-            a.Sign = a.Sign == Sign.Plus ? Sign.Minus : Sign.Plus;
-            return a;
+            BigPointNumber tmp = a;
+            tmp.Sign = tmp.Sign == Sign.Plus ? Sign.Minus : Sign.Plus;
+            return tmp;
         }
 
         public static BigPointNumber operator +(BigPointNumber a, BigPointNumber b) => a.Sign == b.Sign
@@ -382,6 +468,7 @@ namespace Calculator
 
         public static BigPointNumber operator -(BigPointNumber a, BigPointNumber b) => a + -b;
         public static BigPointNumber operator *(BigPointNumber a, BigPointNumber b) => Multiply(a, b);
+        public static BigPointNumber operator /(BigPointNumber a, BigPointNumber b) => Div(a, b);
     }
 
 }

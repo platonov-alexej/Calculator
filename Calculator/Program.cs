@@ -10,14 +10,13 @@ namespace Calculator
     {
         static void Main(string[] args)
         {
-            //BigNumber a = new BigNumber("123456");
+            //BigNumber a = new BigNumber("12345645");
             //BigNumber b = new BigNumber("654321");
-            //Console.WriteLine(a + b);
+            //Console.WriteLine(a / b);
 
-            BigPointNumber x = new BigPointNumber("12.5");
-            BigPointNumber y = new BigPointNumber("80");
-            //Console.WriteLine(x + y);
-            Console.WriteLine(x * y);
+            BigPointNumber x = new BigPointNumber("123.5");
+            BigPointNumber y = new BigPointNumber("2.5");
+            Console.WriteLine(x / y);
             Console.ReadKey();
         }
     }
