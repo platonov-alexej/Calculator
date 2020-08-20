@@ -45,6 +45,7 @@
   <ItemGroup>
     <Compile Include="BigNumber.cs" />
     <Compile Include="BigPointNumber.cs" />
+    <Compile Include="RPN.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

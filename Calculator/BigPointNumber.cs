@@ -42,7 +42,7 @@ namespace Calculator
                 Sign = Sign.Minus;
                 s = s.Substring(1);
             }
-            PointPosition = s.IndexOf(".");
+            PointPosition = s.IndexOf(",");
             if (PointPosition >= 0) s = s.Remove(PointPosition, 1);
 
             foreach (var c in s.Reverse())
@@ -169,7 +169,7 @@ namespace Calculator
                 s.Append(Convert.ToString(digits[i]));
             }
             if (PointPosition >= 0 & PointPosition != digits.Count)
-                s.Insert(PointPosition, ".");
+                s.Insert(PointPosition, ",");
             s.Insert(0, Sign == Sign.Minus ? "-" : "");
 
             return s.ToString();
@@ -428,7 +428,7 @@ namespace Calculator
             }
 
 
-            BigPointNumber result = new BigPointNumber(resStr.ToString().Substring(0, wholePart.Length) + "." + resStr.ToString().Substring(wholePart.Length, resStr.ToString().Length - wholePart.Length));
+            BigPointNumber result = new BigPointNumber(resStr.ToString().Substring(0, wholePart.Length) + "," + resStr.ToString().Substring(wholePart.Length, resStr.ToString().Length - wholePart.Length));
             return result;
         }
 
@@ -500,6 +500,24 @@ namespace Calculator
                 result = result * new BigPointNumber(i);
             }
             return result;
+        }
+
+        public static BigPointNumber Pi ()
+        {
+            BigPointNumber res = new BigPointNumber(0);
+            for (int i = 0; i <= 100000; i++)
+            {
+                BigPointNumber fraction = new BigPointNumber(4) / new BigPointNumber(2 * i + 1);
+                if (i % 2 == 0)
+                {
+                    res = res + fraction;
+                }
+                else
+                {
+                    res = res - fraction;
+                }
+            }
+            return res;
         }
     }
 
