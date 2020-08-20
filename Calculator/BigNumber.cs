@@ -333,7 +333,7 @@ namespace Calculator
             return retValue;
         }
 
-        private static BigNumber Mod(BigNumber a, BigNumber b)
+        public static BigNumber Mod(BigNumber a, BigNumber b)
         {
             var retValue = Zero;
 

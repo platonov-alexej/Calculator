@@ -77,7 +77,7 @@ namespace Calculator
                 if (digits[i] == 0)
                 {
                     int x = digits.Count - i - 1;
-                    if (PointPosition - x > 1)
+                    if (PointPosition - x > 1 || PointPosition == -1)
                     {
                         if (PointPosition != -1) PointPosition--;
                         digits.RemoveAt(i);
@@ -163,6 +163,7 @@ namespace Calculator
         {
             var s = new StringBuilder("");
 
+            if (digits.Count == 0) s.Append("0");
             for (var i = digits.Count - 1; i >= 0; i--)
             {
                 s.Append(Convert.ToString(digits[i]));
@@ -185,23 +186,27 @@ namespace Calculator
                     b.addDigit(0, 0);
 
                 }
-            else
+            else if (a.SizeAfterPoint < b.SizeAfterPoint)
                 for (int i = 0; i < deltaAfter; i++)
+                {
+                    if (a.PointPosition == -1) a.PointPosition = a.digits.Count;
                     a.addDigit(0, 0);
+                }
+
 
 
             if (a.SizeBeforePoint > b.SizeBeforePoint)
                 for (int i = 0; i < deltaBefore; i++)
                 {
                     b.addDigit(b.digits.Count, 0);
-                    b.PointPosition++;
+                    if (b.PointPosition != -1) b.PointPosition++;
                 }
 
-            else
+            else if (a.SizeBeforePoint < b.SizeBeforePoint)
                 for (int i = 0; i < deltaBefore; i++)
                 {
                     a.addDigit(a.digits.Count, 0);
-                    a.PointPosition++;
+                    if (b.PointPosition != -1) a.PointPosition++;
                 }
         }
 
@@ -366,6 +371,8 @@ namespace Calculator
                 digits.Add((byte)s);
             }
             int tmp_PointPos = tmp_a.PointPosition > tmp_b.PointPosition ? tmp_a.PointPosition : tmp_b.PointPosition;
+            BigPointNumber result = new BigPointNumber(digits, max.Sign, tmp_PointPos);
+            result.RemoveNulls();
             return new BigPointNumber(digits, max.Sign, tmp_PointPos);
         }
 
@@ -393,6 +400,39 @@ namespace Calculator
             return retValue;
         }
 
+        private static BigPointNumber Division(BigPointNumber A, BigPointNumber B)
+        {
+            BigPointNumber a = A;
+            BigPointNumber b = B;
+
+            RemoveFractionalParts(ref a, ref b);
+
+            string wholePart = Div(a, b).ToString();
+            BigPointNumber defractionPart = Mod(a, b);
+
+            StringBuilder resStr = new StringBuilder(wholePart);
+
+            if (defractionPart.digits.Count == 1 && defractionPart.digits[0] == 0)
+                return new BigPointNumber(resStr.ToString());
+
+            BigPointNumber defractionPart_tmp = defractionPart;
+            int i = 0;
+            while (defractionPart_tmp.ToString() != "0" && i < 20)
+            {
+                i++;
+                defractionPart_tmp = defractionPart_tmp * new BigPointNumber("10");
+                BigPointNumber wholePart_tmp = Div(defractionPart_tmp, b);
+                //if (wholePart_tmp.ToString() != "0")
+                    resStr.Append(wholePart_tmp.ToString());
+                defractionPart_tmp = Mod(defractionPart_tmp, b);
+            }
+
+
+            BigPointNumber result = new BigPointNumber(resStr.ToString().Substring(0, wholePart.Length) + "." + resStr.ToString().Substring(wholePart.Length, resStr.ToString().Length - wholePart.Length));
+            return result;
+        }
+
+
         private static BigPointNumber Div(BigPointNumber A, BigPointNumber B)
         {
             BigPointNumber a = A;
@@ -403,7 +443,7 @@ namespace Calculator
             BigNumber a_ = new BigNumber(a.ToString());
             BigNumber b_ = new BigNumber(b.ToString());
 
-            return new BigPointNumber (BigNumber.Div(a_, b_).ToString());
+            return new BigPointNumber(BigNumber.Div(a_, b_).ToString());
 
         }
 
@@ -420,40 +460,21 @@ namespace Calculator
             b.PointPosition = -1;
         }
 
-        private static BigPointNumber Mod(BigPointNumber a, BigPointNumber b)
+        private static BigPointNumber Mod(BigPointNumber A, BigPointNumber B)
         {
-            var retValue = Zero;
+            BigPointNumber a = A;
+            BigPointNumber b = B;
 
-            for (var i = a.Size - 1; i >= 0; i--)
-            {
-                retValue += Exp(a.GetByte(i), i);
+            RemoveFractionalParts(ref a, ref b);
 
-                var x = 0;
-                var l = 0;
-                var r = 10;
+            BigPointNumber result = a - (Div(a, b) * b);
 
-                while (l <= r)
-                {
-                    var m = (l + r) >> 1;
-                    var cur = b * Exp((byte)m, i);
-                    if (cur <= retValue)
-                    {
-                        x = m;
-                        l = m + 1;
-                    }
-                    else
-                    {
-                        r = m - 1;
-                    }
-                }
+            return result;
 
-                retValue -= b * Exp((byte)x, i);
-            }
+            //BigNumber a_ = new BigNumber(a.ToString());
+            //BigNumber b_ = new BigNumber(b.ToString());
 
-            retValue.RemoveNulls();
-
-            retValue.Sign = a.Sign == b.Sign ? Sign.Plus : Sign.Minus;
-            return retValue;
+            //return new BigPointNumber(BigNumber.Mod(a_, b_).ToString());
         }
         public static BigPointNumber operator -(BigPointNumber a)
         {
@@ -468,7 +489,18 @@ namespace Calculator
 
         public static BigPointNumber operator -(BigPointNumber a, BigPointNumber b) => a + -b;
         public static BigPointNumber operator *(BigPointNumber a, BigPointNumber b) => Multiply(a, b);
-        public static BigPointNumber operator /(BigPointNumber a, BigPointNumber b) => Div(a, b);
+        public static BigPointNumber operator /(BigPointNumber a, BigPointNumber b) => Division(a, b);
+        public static BigPointNumber operator %(BigPointNumber a, BigPointNumber b) => Mod(a, b);
+
+        public static BigPointNumber Factorial(int x)
+        {
+            BigPointNumber result = new BigPointNumber("1");
+            for (int i = 2; i <= x; i++)
+            {
+                result = result * new BigPointNumber(i);
+            }
+            return result;
+        }
     }
 
 }
